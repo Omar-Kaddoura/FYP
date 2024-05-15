@@ -7,25 +7,23 @@ from rfidReader import getUID
 import numpy as np
 from pymongo import MongoClient, errors
 
-# Initialize global variables
+
+
 photos = []
 photo_labels = []
 face_encodings = []
 camera = cv2.VideoCapture(0)
+name = ""  
+
 def callme():
-    
     print("waiting for RFID tag")
     uid = getUID()
     print(uid)
 
-    def store_name():
-        global name
-        name = name_entry.get()
-
     def take_photo():
         global camera, photos, photo_labels, face_encodings
 
-        if len(photos) < 7:  # Check if the limit has not been reached
+        if len(photos) < 7:
             ret, frame = camera.read()
             if ret:
                 img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
@@ -50,36 +48,53 @@ def callme():
             else:
                 print("Error: Failed to capture photo")
         else:
-            print(f"Maximum number of photos (7) reached. Number of face encodings: {len(face_encodings)}")
-            print("Face Encodings:")
-            for encoding in face_encodings:
-                print(encoding)
-            root.quit()  # Close the interface
+            warning_label.config(text="Maximum number of photos (7) reached. Click 'Register User' to proceed.")
+            capture_button.config(state=tk.DISABLED)
+
+    def register_user():
+        global name
+        name = name_entry.get()
+        print(f"Number of face encodings: {len(face_encodings)}")
+        print("Face Encodings:")
+        for encoding in face_encodings:
+            print(encoding)
+        root.quit()
 
     root = tk.Tk()
     root.title("Name Input")
+    root.configure(bg='white')
     root.geometry("800x600")
 
-    label = tk.Label(root, text="Enter your name:")
-    label.pack()
+    top_frame = tk.Frame(root, height=50, bg='white')
+    top_frame.pack(side=tk.TOP, fill=tk.X)
 
-    name_entry = tk.Entry(root)
-    name_entry.pack()
+    label = tk.Label(root, text="Enter your name:", font=('Helvetica', 14), bg='white')
+    label.pack(pady=(20, 10))
 
-    store_button = tk.Button(root, text="Store Name", command=store_name)
-    store_button.pack()
+    name_entry = tk.Entry(root, font=('Helvetica', 14), width=30, bd=1, highlightbackground='black', highlightthickness=2, relief='solid')
+    name_entry.pack(pady=10)
 
-    capture_button = tk.Button(root, text="Take Photo", command=take_photo)
-    capture_button.pack()
+    uid_label = tk.Label(root, text=f"UID: {uid}", font=('Helvetica', 14), bg='white')
+    uid_label.pack(pady=10)
 
-    photo_frame = tk.Frame(root)
+    warning_label = tk.Label(root, text="", font=('Helvetica', 14), bg='white', fg='red')
+    warning_label.pack(pady=10)
+
+    button_style = {'font': ('Helvetica', 16), 'bg': 'black', 'fg': 'white', 'padx': 10, 'pady': 10, 'width': 15}
+
+    capture_button = tk.Button(root, text="Take Photo", command=take_photo, **button_style)
+    capture_button.pack(pady=20)
+
+    register_button = tk.Button(root, text="Register User", command=register_user, **button_style)
+    register_button.pack(pady=20)
+
+    photo_frame = tk.Frame(root, bg='white')
     photo_frame.pack(pady=10)
 
     root.mainloop()
     return name, face_encodings, uid
 
 name, user_encoding, ID = callme()
-
 
 client = MongoClient('mongodb+srv://rar29:uiwU4u6ZHBRLryVb@cluster0.e85xuag.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 
@@ -90,7 +105,7 @@ encoding_list = [encodings.tolist() for encodings in user_encoding]
 users_documents = [
     {
         "name": name,
-        "encodings": encoding_list,  
+        "encodings": encoding_list,
         "ID": ID,
     },
 ]
