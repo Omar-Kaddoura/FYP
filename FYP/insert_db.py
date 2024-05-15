@@ -1,71 +1,29 @@
 from pymongo import MongoClient, errors
-from encodings.anas_encodings import anas_encodings
-from encodings.rahaf_encodings import rahaf_encodings  
-from encodings.assaad_encodings import assaad_encodings 
-from encodings.atieh_encodings import atieh_encodings 
-from encodings.hamza_encodings import hamza_encodings 
-from encodings.kaddoura_encodings import kaddoura_encodings
+from interface import databaseEntry
+
+
 client = MongoClient('mongodb+srv://rar29:uiwU4u6ZHBRLryVb@cluster0.e85xuag.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 
 db = client['mydatabase']
 collection = db['users']
 
 
+name, user_encoding, ID = databaseEntry()
 
-rahaf_encodings_list = [encoding.tolist() for encoding in rahaf_encodings]
-anas_encodings_list = [encoding.tolist() for encoding in anas_encodings]
-assaad_encodings_list = [encoding.tolist() for encoding in assaad_encodings]
-atieh_encodings_list = [encoding.tolist() for encoding in atieh_encodings]
-hamza_encodings_list = [encoding.tolist() for encoding in hamza_encodings]
-kaddoura_encodings_list = [encoding.tolist() for encoding in kaddoura_encodings]
-
-
-
-
-
-
+encoding_list = [encodings.tolist() for encodings in user_encoding]
 users_documents = [
     {
-        "name": "Rahaf",
-        "encodings": rahaf_encodings_list,  
-        "ID": "1",
-    },
-    {
-        "name": "Atieh",
-        "encodings": atieh_encodings_list, 
-        "ID": "2",
-    },
-    {
-        "name": "Hamza",
-        "encodings": hamza_encodings_list,  
-        "ID": "3",
-    },
-    {
-        "name": "Kaddoura",
-        "encodings": kaddoura_encodings_list,  
-        "ID": "4",
-    },
-    {
-        "name": "Hamza",
-        "encodings": hamza_encodings_list,  
-        "ID": "5",
-    },
-    {
-        "name": "Anas",
-        "encodings": anas_encodings_list,  
-        "ID": "6",
-    },
-    {
-        "name": "Assaad",
-        "encodings": assaad_encodings_list,  
-        "ID": "7",
+        "name": name,
+        "encodings": encoding_list,  
+        "ID": ID,
     },
 ]
+
 
 try:
     for user in users_documents:
         result = collection.update_one(
-            {"ID": user["ID"]},  # Use the correct field for lookup
+            {"ID": user["ID"]},  
             {"$set": user},
             upsert=True
         )
